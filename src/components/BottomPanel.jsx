@@ -274,6 +274,13 @@ const BottomPanel = ({
                                             <div className="text-xl font-bold text-green-700">{routeData.distance}</div>
                                             <div className="text-xs font-semibold text-green-600 uppercase tracking-wide">km</div>
                                         </div>
+                                        <div className="h-8 w-px bg-green-200" />
+                                        <div className="text-center">
+                                            <div className="text-lg font-bold text-green-700">
+                                                {new Date(Date.now() + routeData.duration * 60000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                            </div>
+                                            <div className="text-xs font-semibold text-green-600 uppercase tracking-wide">ETA</div>
+                                        </div>
                                     </div>
 
                                     <div className="space-y-2 max-h-[40vh] overflow-y-auto scrollbar-hide">

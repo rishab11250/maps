@@ -3,6 +3,9 @@ import SearchBar from './components/SearchBar';
 import Controls from './components/Controls';
 import BottomPanel from './components/BottomPanel';
 import DistanceCalculator from './components/DistanceCalculator';
+import Compass from './components/Compass';
+import MiniMap from './components/MiniMap';
+import VoiceNav from './components/VoiceNav';
 import { useState, useRef, useEffect } from 'react';
 import { Marker, Popup, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
@@ -28,12 +31,70 @@ function App() {
   const [routeData, setRouteData] = useState(null);
   const [activeTab, setActiveTab] = useState('saved'); // 'saved' or 'directions'
   const [isMeasuring, setIsMeasuring] = useState(false);
+  const [voiceEnabled, setVoiceEnabled] = useState(false);
 
   const mapRef = useRef(null);
 
   useEffect(() => {
     localStorage.setItem('savedPlaces', JSON.stringify(savedPlaces));
   }, [savedPlaces]);
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      // Ignore if typing in input
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+
+      const map = mapRef.current;
+      if (!map) return;
+
+      switch (e.key) {
+        case '+':
+        case '=':
+          map.zoomIn();
+          break;
+        case '-':
+          map.zoomOut();
+          break;
+        case 'ArrowUp':
+          map.panBy([0, -100]);
+          break;
+        case 'ArrowDown':
+          map.panBy([0, 100]);
+          break;
+        case 'ArrowLeft':
+          map.panBy([-100, 0]);
+          break;
+        case 'ArrowRight':
+          map.panBy([100, 0]);
+          break;
+        case 'Escape':
+          setPanelOpen(false);
+          setSelectedPlace(null);
+          if (document.fullscreenElement) {
+            document.exitFullscreen();
+          }
+          break;
+        case 'f':
+        case 'F':
+          if (!document.fullscreenElement) {
+            document.documentElement.requestFullscreen();
+          } else {
+            document.exitFullscreen();
+          }
+          break;
+        case 'l':
+        case 'L':
+          handleLocate();
+          break;
+        default:
+          break;
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   // Removed flaky useEffect for geolocation
 
@@ -304,6 +365,23 @@ function App() {
         onMeasure={handleToggleMeasurement}
         mapStyle={mapStyle}
         onShare={handleShare}
+      />
+
+      {/* Compass Rose */}
+      <Compass bearing={0} onResetNorth={() => {
+        if (mapRef.current) {
+          mapRef.current.setView(mapRef.current.getCenter(), mapRef.current.getZoom());
+        }
+      }} />
+
+      {/* Mini-map Overview */}
+      <MiniMap parentMap={mapRef.current} />
+
+      {/* Voice Navigation */}
+      <VoiceNav
+        steps={routeData?.steps || []}
+        isActive={voiceEnabled}
+        onToggle={() => setVoiceEnabled(!voiceEnabled)}
       />
 
       {/* Bottom Sheet */}

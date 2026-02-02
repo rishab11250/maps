@@ -1,6 +1,7 @@
-import { Plus, Minus, Crosshair, Ruler, Moon, Sun, Share2, Map, Globe, Satellite } from 'lucide-react';
+import { Plus, Minus, Crosshair, Ruler, Moon, Sun, Share2, Map, Globe, Maximize, Minimize } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { cn } from '../lib/utils';
+import { useState, useEffect } from 'react';
 
 // Icon map for map styles
 const MapStyleIcons = {
@@ -32,11 +33,38 @@ const FAB = ({ onClick, icon: Icon, title, className, active, delay = 0 }) => (
 
 const Controls = ({ onZoomIn, onZoomOut, onLocate, onCycleMapStyle, onMeasure, mapStyle, onShare }) => {
     const CurrentMapIcon = MapStyleIcons[mapStyle] || Map;
+    const [isFullscreen, setIsFullscreen] = useState(false);
+
+    // Listen for fullscreen changes
+    useEffect(() => {
+        const handleFullscreenChange = () => {
+            setIsFullscreen(!!document.fullscreenElement);
+        };
+        document.addEventListener('fullscreenchange', handleFullscreenChange);
+        return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
+    }, []);
+
+    const toggleFullscreen = () => {
+        if (!document.fullscreenElement) {
+            document.documentElement.requestFullscreen();
+        } else {
+            document.exitFullscreen();
+        }
+    };
 
     return (
         <>
             {/* Bottom Right: All Controls */}
             <div className="absolute right-4 bottom-32 md:bottom-24 z-[1000] flex flex-col gap-3 items-center">
+
+                {/* Fullscreen Toggle */}
+                <FAB
+                    onClick={toggleFullscreen}
+                    icon={isFullscreen ? Minimize : Maximize}
+                    title={isFullscreen ? "Exit Fullscreen" : "Fullscreen"}
+                    active={isFullscreen}
+                    delay={0}
+                />
 
                 {/* Map Style Toggle */}
                 <FAB
@@ -44,7 +72,7 @@ const Controls = ({ onZoomIn, onZoomOut, onLocate, onCycleMapStyle, onMeasure, m
                     icon={CurrentMapIcon}
                     title={`Map: ${mapStyle} (click to change)`}
                     active={mapStyle !== 'light'}
-                    delay={0}
+                    delay={0.02}
                 />
 
                 {/* Share */}
@@ -52,7 +80,7 @@ const Controls = ({ onZoomIn, onZoomOut, onLocate, onCycleMapStyle, onMeasure, m
                     onClick={onShare}
                     icon={Share2}
                     title="Share Location"
-                    delay={0.05}
+                    delay={0.04}
                 />
 
                 {/* Measure */}
@@ -60,7 +88,7 @@ const Controls = ({ onZoomIn, onZoomOut, onLocate, onCycleMapStyle, onMeasure, m
                     onClick={onMeasure}
                     icon={Ruler}
                     title="Measure"
-                    delay={0.1}
+                    delay={0.06}
                 />
 
                 {/* My Location */}
@@ -68,7 +96,7 @@ const Controls = ({ onZoomIn, onZoomOut, onLocate, onCycleMapStyle, onMeasure, m
                     onClick={onLocate}
                     icon={Crosshair}
                     title="My Location"
-                    delay={0.15}
+                    delay={0.08}
                 />
 
                 {/* Zoom Group (Pill shape) */}
@@ -98,3 +126,4 @@ const Controls = ({ onZoomIn, onZoomOut, onLocate, onCycleMapStyle, onMeasure, m
 import React from 'react';
 
 export default React.memo(Controls);
+
