@@ -1,4 +1,4 @@
-import { Search, Loader2, X, Settings } from 'lucide-react';
+import { Search, Loader2, X, Settings, Clock, History } from 'lucide-react';
 import { useState, useCallback, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '../lib/utils';
@@ -6,6 +6,11 @@ import debounce from 'lodash.debounce';
 
 const SearchBar = ({ onSearch, isSearching }) => {
     const [query, setQuery] = useState('');
+    const [isFocused, setIsFocused] = useState(false);
+    const [recentSearches, setRecentSearches] = useState(() => {
+        const saved = localStorage.getItem('recentSearches');
+        return saved ? JSON.parse(saved) : [];
+    });
 
     // Debounced search for auto-search on typing
     const debouncedSearch = useMemo(
@@ -24,6 +29,12 @@ const SearchBar = ({ onSearch, isSearching }) => {
         };
     }, [debouncedSearch]);
 
+    const saveToRecent = (searchTerm) => {
+        const updated = [searchTerm, ...recentSearches.filter(s => s !== searchTerm)].slice(0, 5);
+        setRecentSearches(updated);
+        localStorage.setItem('recentSearches', JSON.stringify(updated));
+    };
+
     const handleInputChange = (e) => {
         const value = e.target.value;
         setQuery(value);
@@ -33,11 +44,24 @@ const SearchBar = ({ onSearch, isSearching }) => {
     const handleSearch = async (e) => {
         e.preventDefault();
         if (!query.trim()) return;
+        saveToRecent(query.trim());
         onSearch(query);
+    };
+
+    const handleRecentClick = (term) => {
+        setQuery(term);
+        saveToRecent(term);
+        onSearch(term);
+        setIsFocused(false);
     };
 
     const clearSearch = () => {
         setQuery('');
+    };
+
+    const clearRecent = () => {
+        setRecentSearches([]);
+        localStorage.removeItem('recentSearches');
     };
 
     return (
@@ -59,6 +83,8 @@ const SearchBar = ({ onSearch, isSearching }) => {
                     type="text"
                     value={query}
                     onChange={handleInputChange}
+                    onFocus={() => setIsFocused(true)}
+                    onBlur={() => setTimeout(() => setIsFocused(false), 200)}
                     placeholder="Search here..."
                     className="flex-1 bg-transparent border-none outline-none text-gray-800 placeholder:text-gray-400 text-lg px-2"
                 />
@@ -85,10 +111,46 @@ const SearchBar = ({ onSearch, isSearching }) => {
                 </div>
 
             </motion.form>
+
+            {/* Recent Searches Dropdown */}
+            <AnimatePresence>
+                {isFocused && recentSearches.length > 0 && !query && (
+                    <motion.div
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        className="bg-white mt-2 rounded-2xl shadow-lg border border-gray-100 overflow-hidden"
+                    >
+                        <div className="flex items-center justify-between px-4 py-2 border-b border-gray-100">
+                            <span className="text-sm font-medium text-gray-500 flex items-center gap-2">
+                                <History size={14} /> Recent
+                            </span>
+                            <button
+                                type="button"
+                                onClick={clearRecent}
+                                className="text-xs text-blue-500 hover:text-blue-700"
+                            >
+                                Clear all
+                            </button>
+                        </div>
+                        {recentSearches.map((term, idx) => (
+                            <button
+                                key={idx}
+                                type="button"
+                                onClick={() => handleRecentClick(term)}
+                                className="w-full px-4 py-3 text-left hover:bg-gray-50 flex items-center gap-3 text-gray-700"
+                            >
+                                <Clock size={16} className="text-gray-400" />
+                                <span className="truncate">{term}</span>
+                            </button>
+                        ))}
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     );
 };
 
-import React, { useEffect as useCleanupEffect } from 'react';
+import React from 'react';
 
 export default React.memo(SearchBar);
