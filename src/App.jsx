@@ -4,7 +4,6 @@ import Controls from './components/Controls';
 import BottomPanel from './components/BottomPanel';
 import DistanceCalculator from './components/DistanceCalculator';
 import Compass from './components/Compass';
-import MiniMap from './components/MiniMap';
 import VoiceNav from './components/VoiceNav';
 import { useState, useRef, useEffect } from 'react';
 import { Marker, Popup, useMapEvents } from 'react-leaflet';
@@ -373,9 +372,6 @@ function App() {
           mapRef.current.setView(mapRef.current.getCenter(), mapRef.current.getZoom());
         }
       }} />
-
-      {/* Mini-map Overview */}
-      <MiniMap parentMap={mapRef.current} />
 
       {/* Voice Navigation */}
       <VoiceNav
