@@ -1,7 +1,23 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Navigation, Star, ChevronUp, ChevronDown, Trash2, ArrowUpDown, MapPin, LocateFixed, Plus, GripVertical } from 'lucide-react';
+import { X, Navigation, Star, Trash2, ArrowUpDown, MapPin, LocateFixed, Plus, Car, Footprints, Bike, Clock, Route } from 'lucide-react';
 import { cn } from '../lib/utils';
+
+// Transport Mode Button Component
+const TransportButton = ({ icon: Icon, label, isActive, onClick }) => (
+    <button
+        onClick={onClick}
+        className={cn(
+            "flex flex-col items-center gap-1 px-4 py-2 rounded-xl transition-all",
+            isActive
+                ? "bg-blue-600 text-white shadow-lg shadow-blue-200"
+                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+        )}
+    >
+        <Icon size={20} />
+        <span className="text-xs font-medium">{label}</span>
+    </button>
+);
 
 const BottomPanel = ({
     isOpen,
@@ -15,21 +31,20 @@ const BottomPanel = ({
     onTabChange,
     routeData,
     onClearRoute,
-    onCalculateRoute // Updated: (start, end, waypoints) => void
+    onCalculateRoute
 }) => {
     const [isExpanded, setIsExpanded] = useState(false);
     const [startInput, setStartInput] = useState("Your Location");
     const [endInput, setEndInput] = useState("");
-    const [waypoints, setWaypoints] = useState([]); // Array of stop strings
+    const [waypoints, setWaypoints] = useState([]);
+    const [transportMode, setTransportMode] = useState('driving');
 
-    // Auto-fill end input if a place is selected when opening directions
     useEffect(() => {
         if (selectedPlace && activeTab === 'directions') {
             setEndInput(selectedPlace.display_name);
         }
     }, [selectedPlace, activeTab]);
 
-    // Auto-expand if there's a selected place or route data
     useEffect(() => {
         if (selectedPlace || routeData || isOpen) {
             setIsExpanded(true);
@@ -59,257 +74,296 @@ const BottomPanel = ({
         setWaypoints(waypoints.filter((_, i) => i !== index));
     };
 
-    const handleRouteSubmit = () => {
-        if (onCalculateRoute) onCalculateRoute(startInput, endInput, waypoints.filter(w => w.trim()));
+    const handleStartNavigation = () => {
+        if (onCalculateRoute && endInput.trim()) {
+            onCalculateRoute(startInput, endInput, waypoints.filter(w => w.trim()), transportMode);
+        }
     };
 
     const toggleExpand = () => setIsExpanded(!isExpanded);
 
     return (
         <div className="absolute bottom-0 left-0 w-full z-[1000] pointer-events-none flex justify-center">
-
             <motion.div
                 initial={{ y: "100%" }}
                 animate={{ y: isExpanded ? "0%" : "85%" }}
                 transition={{ type: "spring", damping: 25, stiffness: 200 }}
                 className={cn(
-                    "pointer-events-auto bg-white w-full max-w-lg shadow-2xl rounded-t-3xl overflow-hidden flex flex-col transition-all duration-300 ease-spring",
+                    "pointer-events-auto bg-white w-full max-w-lg shadow-2xl rounded-t-3xl overflow-hidden flex flex-col",
                     isExpanded ? "h-panel-expanded" : "h-panel-collapsed"
                 )}
             >
-                {/* Drag Handle / Header */}
+                {/* Drag Handle */}
                 <div
                     onClick={toggleExpand}
-                    className="w-full bg-white p-3 flex flex-col items-center cursor-pointer border-b border-gray-100 shrink-0 hover:bg-gray-50 transition-colors"
+                    className="w-full bg-white p-3 flex flex-col items-center cursor-pointer border-b border-gray-100 shrink-0 hover:bg-gray-50"
                 >
                     <div className="w-12 h-1.5 bg-gray-300 rounded-full mb-2" />
-                    <div className="flex items-center gap-2 text-sm font-medium text-gray-500">
-                        {isExpanded ? "Swipe down to minimize" : "Swipe up for details"}
+                    <div className="text-sm font-medium text-gray-500">
+                        {isExpanded ? "Swipe down" : "Swipe up"}
                     </div>
                 </div>
 
-                {/* Content Area */}
+                {/* Content */}
                 <div className="flex-1 overflow-y-auto p-4 bg-gray-50/50">
 
-                    {/* Navigation Tabs (Only visible when expanded or partially visible) */}
+                    {/* Saved Places Tab */}
                     {activeTab === 'saved' && !routeData && (
                         <div className="space-y-4">
-                            <h2 className="text-xl font-bold text-gray-800 px-1">Saved Places</h2>
+                            <h2 className="text-xl font-bold text-gray-800">Saved Places</h2>
                             {savedPlaces.length === 0 ? (
                                 <div className="text-center py-8 text-gray-500">
                                     <Star className="mx-auto mb-2 opacity-20" size={48} />
-                                    <p>No saved places yet.</p>
+                                    <p className="text-sm">No saved places yet.</p>
                                 </div>
                             ) : (
                                 <div className="space-y-2">
                                     {savedPlaces.map((place, idx) => (
-                                        <div
+                                        <motion.div
                                             key={idx}
+                                            initial={{ opacity: 0, y: 10 }}
+                                            animate={{ opacity: 1, y: 0 }}
                                             onClick={() => onSelectPlace(place)}
-                                            className="group flex items-center justify-between p-4 bg-white rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-all cursor-pointer"
+                                            className={cn(
+                                                "p-3 bg-white rounded-xl border cursor-pointer hover:shadow-md flex items-center justify-between",
+                                                selectedPlace?.display_name === place.display_name && "ring-2 ring-blue-500"
+                                            )}
                                         >
-                                            <div className="flex items-center gap-3 overflow-hidden">
-                                                <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 shrink-0">
-                                                    <Star size={18} fill="currentColor" />
-                                                </div>
-                                                <div className="truncate">
-                                                    <h3 className="font-semibold text-gray-900 truncate">{place.display_name.split(',')[0]}</h3>
-                                                    <p className="text-xs text-gray-500 truncate">{place.display_name}</p>
-                                                </div>
+                                            <div className="flex items-center gap-3 flex-1 min-w-0">
+                                                <Star size={16} className="text-yellow-500 fill-yellow-400" />
+                                                <span className="text-sm truncate">{place.display_name}</span>
                                             </div>
                                             <button
                                                 onClick={(e) => { e.stopPropagation(); onDeletePlace(place); }}
-                                                className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors opacity-0 group-hover:opacity-100"
+                                                className="p-2 hover:bg-red-50 rounded-full text-gray-400 hover:text-red-500"
                                             >
-                                                <Trash2 size={16} />
+                                                <Trash2 size={14} />
                                             </button>
-                                        </div>
+                                        </motion.div>
                                     ))}
+                                </div>
+                            )}
+
+                            {/* Selected Place Card */}
+                            {selectedPlace && (
+                                <div className="p-4 bg-white rounded-2xl shadow-lg border space-y-3 mt-4">
+                                    <div className="flex items-start gap-3">
+                                        <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                                            <MapPin className="text-blue-600" size={20} />
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <h3 className="font-bold text-gray-900 truncate">
+                                                {selectedPlace.display_name?.split(',')[0]}
+                                            </h3>
+                                            <p className="text-xs text-gray-500 truncate">{selectedPlace.display_name}</p>
+                                        </div>
+                                        <button onClick={onClearSelection} className="p-2 hover:bg-gray-100 rounded-full text-gray-400">
+                                            <X size={18} />
+                                        </button>
+                                    </div>
+                                    <div className="flex gap-2">
+                                        <button
+                                            onClick={() => {
+                                                setEndInput(selectedPlace.display_name);
+                                                onTabChange('directions');
+                                            }}
+                                            className="flex-1 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-medium shadow-lg flex items-center justify-center gap-2"
+                                        >
+                                            <Navigation size={18} />
+                                            Directions
+                                        </button>
+                                        <button
+                                            onClick={() => onDeletePlace(selectedPlace)}
+                                            className="px-4 py-3 bg-gray-100 hover:bg-gray-200 rounded-xl"
+                                        >
+                                            <Star size={20} />
+                                        </button>
+                                    </div>
                                 </div>
                             )}
                         </div>
                     )}
 
-                    {/* Place Details View */}
-                    {selectedPlace && activeTab === 'saved' && (
-                        <div className="space-y-4">
-                            <div className="flex items-center justify-between">
-                                <h2 className="text-xl font-bold text-gray-900">Selected Place</h2>
-                                <button onClick={onClearSelection} className="p-2 hover:bg-gray-100 rounded-full">
-                                    <X size={20} />
-                                </button>
-                            </div>
-                            <div className="p-4 bg-white rounded-2xl shadow-sm border border-gray-100">
-                                <h3 className="font-bold text-lg mb-1">{selectedPlace.display_name.split(',')[0]}</h3>
-                                <p className="text-sm text-gray-500 mb-4">{selectedPlace.display_name}</p>
-                                <div className="flex gap-2">
-                                    <button
-                                        onClick={() => {
-                                            onTabChange('directions');
-                                            // Ideally execute route logic here or via parent
-                                        }}
-                                        className="flex-1 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-medium shadow-lg shadow-blue-200 transition-all flex items-center justify-center gap-2"
-                                    >
-                                        <Navigation size={18} />
-                                        Directions
-                                    </button>
-                                    <button
-                                        onClick={() => onDeletePlace(selectedPlace)} // Using delete as toggle
-                                        className="px-4 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-medium transition-colors"
-                                    >
-                                        {/* Logic for isSaved needs to be passed or handled better, assuming toggle for now */}
-                                        <Star size={20} />
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Route/Directions View */}
+                    {/* Directions Tab - Google Maps Style */}
                     {activeTab === 'directions' && (
                         <div className="space-y-4">
+                            {/* Header */}
                             <div className="flex items-center justify-between">
-                                <h2 className="text-xl font-bold text-gray-900">Plan Trip</h2>
-                                <button onClick={onClearRoute} className="text-sm font-medium text-red-500 hover:text-red-600 px-3 py-1 bg-red-50 rounded-full">
-                                    Exit
+                                <h2 className="text-xl font-bold text-gray-900">Get Directions</h2>
+                                <button
+                                    onClick={() => {
+                                        onClearRoute();
+                                        onTabChange('saved');
+                                    }}
+                                    className="text-sm font-medium text-gray-600 px-3 py-1.5 bg-gray-100 hover:bg-gray-200 rounded-full"
+                                >
+                                    ✕ Close
                                 </button>
                             </div>
 
-                            {/* Trip Inputs */}
-                            <div className="flex flex-col gap-3 p-4 bg-gray-100 rounded-2xl relative">
-                                {/* Vertical Line Decor */}
-                                <div className="absolute left-[27px] top-[30px] bottom-[30px] w-0.5 bg-gray-300 border-l border-dashed border-gray-400 pointer-events-none" />
+                            {/* Transport Mode Selector */}
+                            <div className="flex gap-2 justify-center p-2 bg-gray-100 rounded-2xl">
+                                <TransportButton icon={Car} label="Drive" isActive={transportMode === 'driving'} onClick={() => setTransportMode('driving')} />
+                                <TransportButton icon={Footprints} label="Walk" isActive={transportMode === 'walking'} onClick={() => setTransportMode('walking')} />
+                                <TransportButton icon={Bike} label="Cycle" isActive={transportMode === 'cycling'} onClick={() => setTransportMode('cycling')} />
+                            </div>
 
-                                {/* Start Input */}
-                                <div className="flex items-center gap-3">
-                                    <div className="w-4 h-4 rounded-full border-2 border-blue-500 shrink-0 bg-white" />
-                                    <div className="flex-1 bg-white rounded-xl px-3 py-2 shadow-sm border border-gray-200 flex items-center gap-2">
+                            {/* Route Inputs */}
+                            <div className="bg-white rounded-2xl shadow-sm border overflow-hidden">
+                                {/* Start */}
+                                <div className="flex items-center gap-3 p-3 border-b">
+                                    <div className="w-3 h-3 rounded-full bg-blue-500 ring-4 ring-blue-100" />
+                                    <div className="flex-1 flex items-center gap-2">
                                         {startInput === "Your Location" && <LocateFixed size={14} className="text-blue-500" />}
                                         <input
                                             value={startInput}
                                             onChange={(e) => setStartInput(e.target.value)}
                                             placeholder="Choose starting point"
-                                            className="w-full bg-transparent outline-none text-sm text-gray-700 font-medium"
+                                            className="w-full bg-transparent outline-none text-sm font-medium"
                                         />
-                                        {startInput && (
-                                            <button onClick={() => setStartInput('')} className="text-gray-400 hover:text-gray-600">
-                                                <X size={14} />
-                                            </button>
-                                        )}
                                     </div>
+                                    {startInput && startInput !== "Your Location" && (
+                                        <button onClick={() => setStartInput('')} className="text-gray-400 hover:text-gray-600 p-1">
+                                            <X size={14} />
+                                        </button>
+                                    )}
                                 </div>
 
-                                {/* Swap Button */}
-                                {/* <button onClick={handleSwap} className="absolute right-4 top-1/2 -translate-y-1/2 p-1.5 bg-white rounded-full shadow-md text-gray-500 hover:text-blue-600 z-10">
-                                    <ArrowUpDown size={14} />
-                                </button> */}
-                                {/* Keep layout simple for now, drag/swap can complicate mobile layout height */}
-
-                                {/* Waypoints (Stops) */}
-                                {waypoints.map((waypoint, index) => (
-                                    <div key={index} className="flex items-center gap-3">
-                                        <div className="w-3 h-3 rounded-full bg-orange-400 shrink-0 ml-0.5" />
-                                        <div className="flex-1 bg-white rounded-xl px-3 py-2 shadow-sm border border-gray-200 flex items-center gap-2">
+                                {/* Waypoints */}
+                                <AnimatePresence>
+                                    {waypoints.map((wp, idx) => (
+                                        <motion.div
+                                            key={idx}
+                                            initial={{ height: 0, opacity: 0 }}
+                                            animate={{ height: 'auto', opacity: 1 }}
+                                            exit={{ height: 0, opacity: 0 }}
+                                            className="flex items-center gap-3 p-3 border-b bg-orange-50"
+                                        >
+                                            <div className="w-3 h-3 rounded-full bg-orange-400 ring-4 ring-orange-100" />
                                             <input
-                                                value={waypoint}
-                                                onChange={(e) => updateWaypoint(index, e.target.value)}
-                                                placeholder={`Stop ${index + 1}`}
-                                                className="w-full bg-transparent outline-none text-sm text-gray-700 font-medium"
+                                                value={wp}
+                                                onChange={(e) => updateWaypoint(idx, e.target.value)}
+                                                placeholder={`Stop ${idx + 1}`}
+                                                className="flex-1 bg-transparent outline-none text-sm"
                                             />
-                                            <button onClick={() => removeWaypoint(index)} className="text-gray-400 hover:text-red-500">
+                                            <button onClick={() => removeWaypoint(idx)} className="text-gray-400 hover:text-red-500 p-1">
                                                 <X size={14} />
                                             </button>
-                                        </div>
-                                    </div>
-                                ))}
+                                        </motion.div>
+                                    ))}
+                                </AnimatePresence>
 
-                                {/* Add Stop Button */}
-                                {waypoints.length < 5 && (
-                                    <button
-                                        type="button"
-                                        onClick={addWaypoint}
-                                        className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-700 font-medium py-1 ml-6"
-                                    >
-                                        <Plus size={16} />
-                                        Add stop
-                                    </button>
-                                )}
-
-                                {/* End Input */}
-                                <div className="flex items-center gap-3">
-                                    <MapPin size={18} className="text-red-500 shrink-0" />
-                                    <div className="flex-1 bg-white rounded-xl px-3 py-2 shadow-sm border border-gray-200 flex items-center gap-2">
-                                        <input
-                                            value={endInput}
-                                            onChange={(e) => setEndInput(e.target.value)}
-                                            placeholder="Choose destination"
-                                            className="w-full bg-transparent outline-none text-sm text-gray-700 font-medium"
-                                        />
-                                        {endInput && (
-                                            <button onClick={() => setEndInput('')} className="text-gray-400 hover:text-gray-600">
-                                                <X size={14} />
-                                            </button>
-                                        )}
-                                    </div>
+                                {/* End */}
+                                <div className="flex items-center gap-3 p-3">
+                                    <div className="w-3 h-3 rounded-full bg-red-500 ring-4 ring-red-100" />
+                                    <input
+                                        value={endInput}
+                                        onChange={(e) => setEndInput(e.target.value)}
+                                        placeholder="Choose destination"
+                                        className="flex-1 bg-transparent outline-none text-sm font-medium"
+                                    />
+                                    {endInput && (
+                                        <button onClick={() => setEndInput('')} className="text-gray-400 hover:text-gray-600 p-1">
+                                            <X size={14} />
+                                        </button>
+                                    )}
                                 </div>
 
-                                <button
-                                    onClick={handleRouteSubmit}
-                                    className="mt-2 w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold shadow-lg shadow-blue-200 transition-all flex items-center justify-center gap-2"
-                                >
-                                    <Navigation size={16} />
-                                    Start Navigation
-                                </button>
+                                {/* Actions */}
+                                <div className="flex items-center justify-between p-3 border-t bg-gray-50">
+                                    <button onClick={addWaypoint} disabled={waypoints.length >= 5} className="flex items-center gap-1 text-sm text-blue-600 font-medium disabled:opacity-50">
+                                        <Plus size={16} /> Add stop
+                                    </button>
+                                    <button onClick={handleSwap} className="flex items-center gap-1 text-sm text-gray-600 font-medium">
+                                        <ArrowUpDown size={16} /> Swap
+                                    </button>
+                                </div>
                             </div>
 
-                            {routeData ? (
-                                <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                                    <div className="flex gap-4 p-4 bg-green-50 rounded-2xl border border-green-100 items-center justify-between">
-                                        <div className="text-center">
-                                            <div className="text-2xl font-bold text-green-700">{routeData.duration}</div>
-                                            <div className="text-xs font-semibold text-green-600 uppercase tracking-wide">min</div>
-                                        </div>
-                                        <div className="h-8 w-px bg-green-200" />
-                                        <div className="text-center">
-                                            <div className="text-xl font-bold text-green-700">{routeData.distance}</div>
-                                            <div className="text-xs font-semibold text-green-600 uppercase tracking-wide">km</div>
-                                        </div>
-                                        <div className="h-8 w-px bg-green-200" />
-                                        <div className="text-center">
-                                            <div className="text-lg font-bold text-green-700">
-                                                {new Date(Date.now() + routeData.duration * 60000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            {/* START Button - Google Maps Style */}
+                            <motion.button
+                                whileHover={{ scale: 1.02 }}
+                                whileTap={{ scale: 0.98 }}
+                                onClick={handleStartNavigation}
+                                disabled={!endInput.trim()}
+                                className={cn(
+                                    "w-full py-4 rounded-2xl font-bold text-lg shadow-xl flex items-center justify-center gap-3",
+                                    endInput.trim()
+                                        ? "bg-blue-600 hover:bg-blue-700 text-white shadow-blue-200"
+                                        : "bg-gray-200 text-gray-400 cursor-not-allowed"
+                                )}
+                            >
+                                <Navigation size={22} className={endInput.trim() ? "animate-pulse" : ""} />
+                                Start
+                            </motion.button>
+
+                            {/* Route Results */}
+                            {routeData && (
+                                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
+                                    {/* Summary Card */}
+                                    <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-2xl p-4 text-white shadow-lg">
+                                        <div className="flex items-center justify-between">
+                                            <div>
+                                                <div className="text-3xl font-bold">{routeData.duration} min</div>
+                                                <div className="text-blue-200 text-sm">{routeData.distance} km</div>
                                             </div>
-                                            <div className="text-xs font-semibold text-green-600 uppercase tracking-wide">ETA</div>
+                                            <div className="text-right">
+                                                <div className="text-sm text-blue-200">Arrive by</div>
+                                                <div className="text-2xl font-bold">
+                                                    {new Date(Date.now() + routeData.duration * 60000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                </div>
+                                            </div>
                                         </div>
+                                        <motion.button
+                                            whileHover={{ scale: 1.02 }}
+                                            whileTap={{ scale: 0.98 }}
+                                            className="w-full mt-4 py-3 bg-white text-blue-600 rounded-xl font-bold flex items-center justify-center gap-2 shadow-lg"
+                                        >
+                                            <Navigation size={20} />
+                                            Start Navigation
+                                        </motion.button>
                                     </div>
 
-                                    <div className="space-y-2 max-h-[40vh] overflow-y-auto scrollbar-hide">
-                                        <h3 className="font-semibold text-gray-700 ml-1 sticky top-0 bg-white py-2">Steps</h3>
-                                        {routeData.steps.map((step, idx) => (
-                                            <div key={idx} className="flex gap-4 p-3 bg-white rounded-xl border border-gray-100 items-start">
-                                                <div className="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center text-xs font-bold text-gray-500 shrink-0 mt-0.5">
-                                                    {idx + 1}
+                                    {/* Turn by Turn */}
+                                    <div className="bg-white rounded-2xl overflow-hidden border">
+                                        <div className="p-3 bg-gray-50 border-b flex items-center gap-2">
+                                            <Route size={16} className="text-gray-500" />
+                                            <span className="font-semibold text-gray-700 text-sm">Turn-by-turn directions</span>
+                                        </div>
+                                        <div className="max-h-[35vh] overflow-y-auto">
+                                            {routeData.steps.map((step, idx) => (
+                                                <div key={idx} className={cn("flex gap-4 p-4 items-start border-b last:border-0", idx === 0 && "bg-blue-50")}>
+                                                    <div className={cn("w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold", idx === 0 ? "bg-blue-600 text-white" : "bg-gray-100 text-gray-500")}>
+                                                        {idx + 1}
+                                                    </div>
+                                                    <div className="flex-1">
+                                                        <p className={cn("text-sm leading-relaxed", idx === 0 ? "font-semibold text-gray-900" : "text-gray-700")}>
+                                                            {step.maneuver?.instruction || step.name || "Continue"}
+                                                        </p>
+                                                        {step.distance > 0 && (
+                                                            <p className="text-xs text-gray-400 mt-1 flex items-center gap-1">
+                                                                <Clock size={10} /> {Math.round(step.distance)}m
+                                                            </p>
+                                                        )}
+                                                    </div>
                                                 </div>
-                                                <div className="flex-1">
-                                                    <p className="text-sm text-gray-700 leading-relaxed font-medium">
-                                                        {step.maneuver.instruction || step.name || "Continue"}
-                                                    </p>
-                                                    {step.distance > 0 && (
-                                                        <p className="text-xs text-gray-400 mt-0.5">{Math.round(step.distance)}m</p>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        ))}
+                                            ))}
+                                        </div>
                                     </div>
-                                </div>
-                            ) : (
-                                <div className="p-4 text-center">
-                                    <p className="text-xs text-gray-400">Enter locations above to see route.</p>
+                                </motion.div>
+                            )}
+
+                            {/* Empty State */}
+                            {!routeData && (
+                                <div className="text-center py-6">
+                                    <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                                        <Navigation size={28} className="text-gray-400" />
+                                    </div>
+                                    <p className="text-sm text-gray-500">Enter a destination to see route options</p>
                                 </div>
                             )}
                         </div>
                     )}
-
                 </div>
             </motion.div>
         </div>
