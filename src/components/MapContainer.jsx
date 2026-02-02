@@ -1,4 +1,4 @@
-import { MapContainer as LeafletMap, TileLayer, Marker, Popup, ZoomControl, LayersControl } from 'react-leaflet';
+import { MapContainer as LeafletMap, TileLayer, Marker, Popup, ZoomControl } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import { forwardRef, useState, useEffect } from 'react';
@@ -16,6 +16,7 @@ let DefaultIcon = L.icon({
 
 L.Marker.prototype.options.icon = DefaultIcon;
 
+// Tile layer configurations
 const TILE_LAYERS = {
     light: {
         url: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
@@ -27,30 +28,37 @@ const TILE_LAYERS = {
     },
     satellite: {
         url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
-        attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+        attribution: 'Tiles &copy; Esri'
     }
 };
 
 const MapContainer = forwardRef(({ activeTheme = 'light', children }, ref) => {
-    const [center, setCenter] = useState([37.7749, -122.4194]); // Default to San Francisco
+    const [center, setCenter] = useState([37.7749, -122.4194]);
     const [initialZoom, setInitialZoom] = useState(13);
+    const [hasLocated, setHasLocated] = useState(false);
+
+    // Get the correct tile configuration based on activeTheme
     const layerConfig = TILE_LAYERS[activeTheme] || TILE_LAYERS.light;
 
     // Get user location on mount for initial center
     useEffect(() => {
+        if (hasLocated) return;
+
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(
                 (position) => {
                     const { latitude, longitude } = position.coords;
                     setCenter([latitude, longitude]);
                     setInitialZoom(14);
+                    setHasLocated(true);
                 },
                 (error) => {
                     console.log("Geolocation denied or unavailable, using default location");
+                    setHasLocated(true);
                 }
             );
         }
-    }, []);
+    }, [hasLocated]);
 
     return (
         <LeafletMap
@@ -62,23 +70,13 @@ const MapContainer = forwardRef(({ activeTheme = 'light', children }, ref) => {
             style={{ height: '100%', width: '100%' }}
             ref={ref}
         >
-            <LayersControl position="topright">
-                <LayersControl.BaseLayer checked name="Street">
-                    <TileLayer
-                        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                    />
-                </LayersControl.BaseLayer>
-
-                <LayersControl.BaseLayer name="Satellite">
-                    <TileLayer
-                        url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
-                        attribution='Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
-                    />
-                </LayersControl.BaseLayer>
-            </LayersControl>
+            {/* Dynamic TileLayer based on activeTheme */}
+            <TileLayer
+                key={activeTheme}
+                url={layerConfig.url}
+                attribution={layerConfig.attribution}
+            />
             {children}
-            {/* We can add a scale control or other things here */}
         </LeafletMap>
     );
 });

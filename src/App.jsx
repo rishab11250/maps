@@ -11,9 +11,10 @@ import UserLocationMarker from './components/UserLocationMarker';
 import toast, { Toaster } from 'react-hot-toast';
 
 function App() {
-  const [isDarkMode, setIsDarkMode] = useState(() => {
-    const saved = localStorage.getItem('mapTheme');
-    return saved === 'dark';
+  // Map style: 'light', 'dark', or 'satellite'
+  const [mapStyle, setMapStyle] = useState(() => {
+    const saved = localStorage.getItem('mapStyle');
+    return saved || 'light';
   });
   // Reusing sidebarOpen state logic but for BottomPanel logic if needed
   const [panelOpen, setPanelOpen] = useState(false);
@@ -124,10 +125,15 @@ function App() {
     setIsMeasuring(!isMeasuring);
   };
 
-  const handleToggleTheme = () => {
-    const newTheme = isDarkMode ? 'light' : 'dark';
-    setIsDarkMode(!isDarkMode);
-    localStorage.setItem('mapTheme', newTheme);
+  // Cycle through map styles: light -> dark -> satellite -> light
+  const handleCycleMapStyle = () => {
+    const styles = ['light', 'dark', 'satellite'];
+    const currentIndex = styles.indexOf(mapStyle);
+    const nextIndex = (currentIndex + 1) % styles.length;
+    const nextStyle = styles[nextIndex];
+    setMapStyle(nextStyle);
+    localStorage.setItem('mapStyle', nextStyle);
+    toast.success(`Map: ${nextStyle.charAt(0).toUpperCase() + nextStyle.slice(1)}`);
   };
 
   const handleShare = () => {
@@ -285,7 +291,7 @@ function App() {
   };
 
   return (
-    <div className={`relative w-full h-screen overflow-hidden font-sans transition-colors duration-300 ${isDarkMode ? 'bg-gray-900 text-gray-100' : 'bg-gray-50 text-gray-900'}`}>
+    <div className={`relative w-full h-screen overflow-hidden font-sans transition-colors duration-300 ${mapStyle === 'dark' ? 'bg-gray-900 text-gray-100' : 'bg-gray-50 text-gray-900'}`}>
       {/* Top Floating Search Capsule */}
       <SearchBar onSearch={handleSearch} />
 
@@ -294,10 +300,9 @@ function App() {
         onZoomIn={handleZoomIn}
         onZoomOut={handleZoomOut}
         onLocate={handleLocate}
-        onToggleLayers={handleToggleTheme}
+        onCycleMapStyle={handleCycleMapStyle}
         onMeasure={handleToggleMeasurement}
-        isDarkMode={isDarkMode}
-        onToggleDarkMode={handleToggleTheme}
+        mapStyle={mapStyle}
         onShare={handleShare}
       />
 
@@ -350,7 +355,7 @@ function App() {
 
       {/* Full Screen Map */}
       <div className="absolute inset-0 z-0">
-        <MapContainer ref={mapRef} activeTheme={isDarkMode ? 'dark' : 'light'}>
+        <MapContainer ref={mapRef} activeTheme={mapStyle}>
           <MapEvents />
           <UserLocationMarker />
 

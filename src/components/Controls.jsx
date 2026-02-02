@@ -1,6 +1,13 @@
-import { Plus, Minus, Crosshair, Layers, Ruler, Moon, Sun, Share2 } from 'lucide-react';
+import { Plus, Minus, Crosshair, Ruler, Moon, Sun, Share2, Map, Globe, Satellite } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { cn } from '../lib/utils';
+
+// Icon map for map styles
+const MapStyleIcons = {
+    light: Map,
+    dark: Moon,
+    satellite: Globe
+};
 
 // Generic FAB Component
 const FAB = ({ onClick, icon: Icon, title, className, active, delay = 0 }) => (
@@ -23,51 +30,46 @@ const FAB = ({ onClick, icon: Icon, title, className, active, delay = 0 }) => (
     </motion.button>
 );
 
-const Controls = ({ onZoomIn, onZoomOut, onLocate, onToggleLayers, onMeasure, isDarkMode, onToggleDarkMode, onShare }) => {
+const Controls = ({ onZoomIn, onZoomOut, onLocate, onCycleMapStyle, onMeasure, mapStyle, onShare }) => {
+    const CurrentMapIcon = MapStyleIcons[mapStyle] || Map;
+
     return (
         <>
-            {/* Top Right: Layers & Dark Mode */}
-            <div className="absolute top-4 right-4 z-[1000] flex flex-col gap-2">
+            {/* Bottom Right: All Controls */}
+            <div className="absolute right-4 bottom-32 md:bottom-24 z-[1000] flex flex-col gap-3 items-center">
+
+                {/* Map Style Toggle */}
                 <FAB
-                    onClick={onToggleLayers}
-                    icon={Layers}
-                    title="Map Layers"
-                    className="bg-white/90 backdrop-blur-sm"
+                    onClick={onCycleMapStyle}
+                    icon={CurrentMapIcon}
+                    title={`Map: ${mapStyle} (click to change)`}
+                    active={mapStyle !== 'light'}
+                    delay={0}
                 />
+
+                {/* Share */}
                 <FAB
-                    onClick={onToggleDarkMode}
-                    icon={isDarkMode ? Sun : Moon}
-                    title={isDarkMode ? "Light Mode" : "Dark Mode"}
-                    active={isDarkMode}
-                    className="bg-white/90 backdrop-blur-sm"
+                    onClick={onShare}
+                    icon={Share2}
+                    title="Share Location"
                     delay={0.05}
                 />
-            </div>
 
-            {/* Bottom Right: Navigation Group */}
-            <div className="absolute right-4 bottom-32 md:bottom-24 z-[1000] flex flex-col gap-4 items-center">
+                {/* Measure */}
+                <FAB
+                    onClick={onMeasure}
+                    icon={Ruler}
+                    title="Measure"
+                    delay={0.1}
+                />
 
-                {/* Tools Group */}
-                <div className="flex flex-col gap-3">
-                    <FAB
-                        onClick={onShare}
-                        icon={Share2}
-                        title="Share Location"
-                        delay={0.05}
-                    />
-                    <FAB
-                        onClick={onMeasure}
-                        icon={Ruler}
-                        title="Measure"
-                        delay={0.1}
-                    />
-                    <FAB
-                        onClick={onLocate}
-                        icon={Crosshair}
-                        title="My Location"
-                        delay={0.15}
-                    />
-                </div>
+                {/* My Location */}
+                <FAB
+                    onClick={onLocate}
+                    icon={Crosshair}
+                    title="My Location"
+                    delay={0.15}
+                />
 
                 {/* Zoom Group (Pill shape) */}
                 <motion.div
