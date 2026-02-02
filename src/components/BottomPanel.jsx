@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Navigation, Star, ChevronUp, ChevronDown, Trash2, ArrowUpDown, MapPin, LocateFixed } from 'lucide-react';
+import { X, Navigation, Star, ChevronUp, ChevronDown, Trash2, ArrowUpDown, MapPin, LocateFixed, Plus, GripVertical } from 'lucide-react';
 import { cn } from '../lib/utils';
 
 const BottomPanel = ({
@@ -15,11 +15,12 @@ const BottomPanel = ({
     onTabChange,
     routeData,
     onClearRoute,
-    onCalculateRoute // New prop: (start, end) => void
+    onCalculateRoute // Updated: (start, end, waypoints) => void
 }) => {
     const [isExpanded, setIsExpanded] = useState(false);
     const [startInput, setStartInput] = useState("Your Location");
     const [endInput, setEndInput] = useState("");
+    const [waypoints, setWaypoints] = useState([]); // Array of stop strings
 
     // Auto-fill end input if a place is selected when opening directions
     useEffect(() => {
@@ -42,8 +43,24 @@ const BottomPanel = ({
         setEndInput(startInput);
     };
 
+    const addWaypoint = () => {
+        if (waypoints.length < 5) {
+            setWaypoints([...waypoints, '']);
+        }
+    };
+
+    const updateWaypoint = (index, value) => {
+        const updated = [...waypoints];
+        updated[index] = value;
+        setWaypoints(updated);
+    };
+
+    const removeWaypoint = (index) => {
+        setWaypoints(waypoints.filter((_, i) => i !== index));
+    };
+
     const handleRouteSubmit = () => {
-        if (onCalculateRoute) onCalculateRoute(startInput, endInput);
+        if (onCalculateRoute) onCalculateRoute(startInput, endInput, waypoints.filter(w => w.trim()));
     };
 
     const toggleExpand = () => setIsExpanded(!isExpanded);
@@ -187,6 +204,36 @@ const BottomPanel = ({
                                     <ArrowUpDown size={14} />
                                 </button> */}
                                 {/* Keep layout simple for now, drag/swap can complicate mobile layout height */}
+
+                                {/* Waypoints (Stops) */}
+                                {waypoints.map((waypoint, index) => (
+                                    <div key={index} className="flex items-center gap-3">
+                                        <div className="w-3 h-3 rounded-full bg-orange-400 shrink-0 ml-0.5" />
+                                        <div className="flex-1 bg-white rounded-xl px-3 py-2 shadow-sm border border-gray-200 flex items-center gap-2">
+                                            <input
+                                                value={waypoint}
+                                                onChange={(e) => updateWaypoint(index, e.target.value)}
+                                                placeholder={`Stop ${index + 1}`}
+                                                className="w-full bg-transparent outline-none text-sm text-gray-700 font-medium"
+                                            />
+                                            <button onClick={() => removeWaypoint(index)} className="text-gray-400 hover:text-red-500">
+                                                <X size={14} />
+                                            </button>
+                                        </div>
+                                    </div>
+                                ))}
+
+                                {/* Add Stop Button */}
+                                {waypoints.length < 5 && (
+                                    <button
+                                        type="button"
+                                        onClick={addWaypoint}
+                                        className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-700 font-medium py-1 ml-6"
+                                    >
+                                        <Plus size={16} />
+                                        Add stop
+                                    </button>
+                                )}
 
                                 {/* End Input */}
                                 <div className="flex items-center gap-3">
