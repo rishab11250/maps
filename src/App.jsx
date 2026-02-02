@@ -2,7 +2,6 @@ import MapContainer from './components/MapContainer';
 import SearchBar from './components/SearchBar';
 import Controls from './components/Controls';
 import BottomPanel from './components/BottomPanel';
-import DistanceCalculator from './components/DistanceCalculator';
 import Compass from './components/Compass';
 import VoiceNav from './components/VoiceNav';
 import { useState, useRef, useEffect } from 'react';
@@ -29,7 +28,6 @@ function App() {
   const [routePoints, setRoutePoints] = useState([]);
   const [routeData, setRouteData] = useState(null);
   const [activeTab, setActiveTab] = useState('saved'); // 'saved' or 'directions'
-  const [isMeasuring, setIsMeasuring] = useState(false);
   const [voiceEnabled, setVoiceEnabled] = useState(false);
 
   const mapRef = useRef(null);
@@ -361,7 +359,6 @@ function App() {
         onZoomOut={handleZoomOut}
         onLocate={handleLocate}
         onCycleMapStyle={handleCycleMapStyle}
-        onMeasure={handleToggleMeasurement}
         mapStyle={mapStyle}
         onShare={handleShare}
       />

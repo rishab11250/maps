@@ -1,4 +1,4 @@
-import { Plus, Minus, Crosshair, Ruler, Moon, Sun, Share2, Map, Globe, Maximize, Minimize } from 'lucide-react';
+import { Plus, Minus, Crosshair, Moon, Sun, Share2, Map, Globe, Maximize, Minimize } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { cn } from '../lib/utils';
 import { useState, useEffect } from 'react';
@@ -31,7 +31,7 @@ const FAB = ({ onClick, icon: Icon, title, className, active, delay = 0 }) => (
     </motion.button>
 );
 
-const Controls = ({ onZoomIn, onZoomOut, onLocate, onCycleMapStyle, onMeasure, mapStyle, onShare }) => {
+const Controls = ({ onZoomIn, onZoomOut, onLocate, onCycleMapStyle, mapStyle, onShare }) => {
     const CurrentMapIcon = MapStyleIcons[mapStyle] || Map;
     const [isFullscreen, setIsFullscreen] = useState(false);
 
@@ -83,13 +83,7 @@ const Controls = ({ onZoomIn, onZoomOut, onLocate, onCycleMapStyle, onMeasure, m
                     delay={0.04}
                 />
 
-                {/* Measure */}
-                <FAB
-                    onClick={onMeasure}
-                    icon={Ruler}
-                    title="Measure"
-                    delay={0.06}
-                />
+
 
                 {/* My Location */}
                 <FAB
