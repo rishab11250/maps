@@ -1,7 +1,7 @@
 import { MapContainer as LeafletMap, TileLayer, Marker, Popup, ZoomControl, LayersControl } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
-import { forwardRef } from 'react';
+import { forwardRef, useState, useEffect } from 'react';
 
 // Fix for default Leaflet marker icons in React
 import icon from 'leaflet/dist/images/marker-icon.png';
@@ -32,14 +32,30 @@ const TILE_LAYERS = {
 };
 
 const MapContainer = forwardRef(({ activeTheme = 'light', children }, ref) => {
-    // Default position (San Francisco)
-    const position = [37.7749, -122.4194];
+    const [center, setCenter] = useState([37.7749, -122.4194]); // Default to San Francisco
+    const [initialZoom, setInitialZoom] = useState(13);
     const layerConfig = TILE_LAYERS[activeTheme] || TILE_LAYERS.light;
+
+    // Get user location on mount for initial center
+    useEffect(() => {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const { latitude, longitude } = position.coords;
+                    setCenter([latitude, longitude]);
+                    setInitialZoom(14);
+                },
+                (error) => {
+                    console.log("Geolocation denied or unavailable, using default location");
+                }
+            );
+        }
+    }, []);
 
     return (
         <LeafletMap
-            center={position}
-            zoom={13}
+            center={center}
+            zoom={initialZoom}
             scrollWheelZoom={true}
             zoomControl={false}
             className="w-full h-full"

@@ -3,7 +3,6 @@ import { useState, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '../lib/utils';
 import debounce from 'lodash.debounce';
-import { cn } from '../lib/utils';
 
 const SearchBar = ({ onSearch, isSearching }) => {
     const [query, setQuery] = useState('');
