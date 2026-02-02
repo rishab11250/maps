@@ -1,4 +1,4 @@
-import { Plus, Minus, Crosshair, Layers, Navigation, Ruler } from 'lucide-react';
+import { Plus, Minus, Crosshair, Layers, Ruler } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { cn } from '../lib/utils';
 
@@ -79,5 +79,6 @@ const Controls = ({ onZoomIn, onZoomOut, onLocate, onToggleLayers, onMeasure }) 
         </>
     );
 };
+import React from 'react';
 
-export default Controls;
+export default React.memo(Controls);

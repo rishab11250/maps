@@ -1,5 +1,5 @@
 import { Search, Loader2, X, Settings } from 'lucide-react';
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '../lib/utils';
 import debounce from 'lodash.debounce';
@@ -16,6 +16,13 @@ const SearchBar = ({ onSearch, isSearching }) => {
         }, 500),
         [onSearch]
     );
+
+    // Cleanup debounce on unmount
+    useEffect(() => {
+        return () => {
+            debouncedSearch.cancel();
+        };
+    }, [debouncedSearch]);
 
     const handleInputChange = (e) => {
         const value = e.target.value;
@@ -82,4 +89,6 @@ const SearchBar = ({ onSearch, isSearching }) => {
     );
 };
 
-export default SearchBar;
+import React, { useEffect as useCleanupEffect } from 'react';
+
+export default React.memo(SearchBar);
