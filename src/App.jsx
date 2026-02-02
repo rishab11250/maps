@@ -11,7 +11,10 @@ import UserLocationMarker from './components/UserLocationMarker';
 import toast, { Toaster } from 'react-hot-toast';
 
 function App() {
-  const [activeTheme, setActiveTheme] = useState('light');
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    const saved = localStorage.getItem('mapTheme');
+    return saved === 'dark';
+  });
   // Reusing sidebarOpen state logic but for BottomPanel logic if needed
   const [panelOpen, setPanelOpen] = useState(false);
   const [savedPlaces, setSavedPlaces] = useState(() => {
@@ -122,7 +125,9 @@ function App() {
   };
 
   const handleToggleTheme = () => {
-    setActiveTheme(prev => activeTheme === 'light' ? 'dark' : 'light');
+    const newTheme = isDarkMode ? 'light' : 'dark';
+    setIsDarkMode(!isDarkMode);
+    localStorage.setItem('mapTheme', newTheme);
   };
 
   // Geocoding Helper
@@ -264,7 +269,7 @@ function App() {
   };
 
   return (
-    <div className="relative w-full h-screen overflow-hidden bg-gray-50 text-gray-900 font-sans">
+    <div className={`relative w-full h-screen overflow-hidden font-sans transition-colors duration-300 ${isDarkMode ? 'bg-gray-900 text-gray-100' : 'bg-gray-50 text-gray-900'}`}>
       {/* Top Floating Search Capsule */}
       <SearchBar onSearch={handleSearch} />
 
@@ -275,6 +280,8 @@ function App() {
         onLocate={handleLocate}
         onToggleLayers={handleToggleTheme}
         onMeasure={handleToggleMeasurement}
+        isDarkMode={isDarkMode}
+        onToggleDarkMode={handleToggleTheme}
       />
 
       {/* Bottom Sheet */}
@@ -326,7 +333,7 @@ function App() {
 
       {/* Full Screen Map */}
       <div className="absolute inset-0 z-0">
-        <MapContainer ref={mapRef} activeTheme={activeTheme}>
+        <MapContainer ref={mapRef} activeTheme={isDarkMode ? 'dark' : 'light'}>
           <MapEvents />
           <UserLocationMarker />
 

@@ -1,4 +1,4 @@
-import { Plus, Minus, Crosshair, Layers, Ruler } from 'lucide-react';
+import { Plus, Minus, Crosshair, Layers, Ruler, Moon, Sun } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { cn } from '../lib/utils';
 
@@ -23,16 +23,24 @@ const FAB = ({ onClick, icon: Icon, title, className, active, delay = 0 }) => (
     </motion.button>
 );
 
-const Controls = ({ onZoomIn, onZoomOut, onLocate, onToggleLayers, onMeasure }) => {
+const Controls = ({ onZoomIn, onZoomOut, onLocate, onToggleLayers, onMeasure, isDarkMode, onToggleDarkMode }) => {
     return (
         <>
-            {/* Top Right: Layers (Map Type) */}
-            <div className="absolute top-4 right-4 z-[1000]">
+            {/* Top Right: Layers & Dark Mode */}
+            <div className="absolute top-4 right-4 z-[1000] flex flex-col gap-2">
                 <FAB
                     onClick={onToggleLayers}
                     icon={Layers}
                     title="Map Layers"
                     className="bg-white/90 backdrop-blur-sm"
+                />
+                <FAB
+                    onClick={onToggleDarkMode}
+                    icon={isDarkMode ? Sun : Moon}
+                    title={isDarkMode ? "Light Mode" : "Dark Mode"}
+                    active={isDarkMode}
+                    className="bg-white/90 backdrop-blur-sm"
+                    delay={0.05}
                 />
             </div>
 
