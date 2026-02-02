@@ -1,4 +1,4 @@
-import { Plus, Minus, Crosshair, Layers, Ruler, Moon, Sun } from 'lucide-react';
+import { Plus, Minus, Crosshair, Layers, Ruler, Moon, Sun, Share2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { cn } from '../lib/utils';
 
@@ -23,7 +23,7 @@ const FAB = ({ onClick, icon: Icon, title, className, active, delay = 0 }) => (
     </motion.button>
 );
 
-const Controls = ({ onZoomIn, onZoomOut, onLocate, onToggleLayers, onMeasure, isDarkMode, onToggleDarkMode }) => {
+const Controls = ({ onZoomIn, onZoomOut, onLocate, onToggleLayers, onMeasure, isDarkMode, onToggleDarkMode, onShare }) => {
     return (
         <>
             {/* Top Right: Layers & Dark Mode */}
@@ -50,6 +50,12 @@ const Controls = ({ onZoomIn, onZoomOut, onLocate, onToggleLayers, onMeasure, is
                 {/* Tools Group */}
                 <div className="flex flex-col gap-3">
                     <FAB
+                        onClick={onShare}
+                        icon={Share2}
+                        title="Share Location"
+                        delay={0.05}
+                    />
+                    <FAB
                         onClick={onMeasure}
                         icon={Ruler}
                         title="Measure"
@@ -59,7 +65,7 @@ const Controls = ({ onZoomIn, onZoomOut, onLocate, onToggleLayers, onMeasure, is
                         onClick={onLocate}
                         icon={Crosshair}
                         title="My Location"
-                        delay={0.1}
+                        delay={0.15}
                     />
                 </div>
 

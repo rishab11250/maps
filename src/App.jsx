@@ -130,6 +130,22 @@ function App() {
     localStorage.setItem('mapTheme', newTheme);
   };
 
+  const handleShare = () => {
+    if (mapRef.current) {
+      const center = mapRef.current.getCenter();
+      const zoom = mapRef.current.getZoom();
+      const url = `${window.location.origin}${window.location.pathname}?lat=${center.lat.toFixed(6)}&lng=${center.lng.toFixed(6)}&z=${zoom}`;
+
+      navigator.clipboard.writeText(url).then(() => {
+        toast.success('Link copied to clipboard!');
+      }).catch(() => {
+        toast.error('Failed to copy link');
+      });
+    } else {
+      toast.error('Map not ready');
+    }
+  };
+
   // Geocoding Helper
   const geocode = async (query) => {
     try {
@@ -282,6 +298,7 @@ function App() {
         onMeasure={handleToggleMeasurement}
         isDarkMode={isDarkMode}
         onToggleDarkMode={handleToggleTheme}
+        onShare={handleShare}
       />
 
       {/* Bottom Sheet */}
