@@ -8,6 +8,7 @@ import { Marker, Popup, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
 import { StartIcon, EndIcon } from './utils/Icons';
 import UserLocationMarker from './components/UserLocationMarker';
+import toast, { Toaster } from 'react-hot-toast';
 
 function App() {
   const [activeTheme, setActiveTheme] = useState('light');
@@ -35,6 +36,7 @@ function App() {
   // Removed flaky useEffect - Logic moved to UserLocationMarker.jsx
 
   const handleSearch = async (query) => {
+    const searchToast = toast.loading('Searching...');
     try {
       // Basic Nominatim Search
       const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${query}`);
@@ -50,9 +52,13 @@ function App() {
         if (mapRef.current) {
           mapRef.current.flyTo([lat, lon], 13, { duration: 1.5 });
         }
+        toast.success('Location found!', { id: searchToast });
+      } else {
+        toast.error('No results found', { id: searchToast });
       }
     } catch (error) {
       console.error("Search failed:", error);
+      toast.error('Search failed. Please try again.', { id: searchToast });
     }
   };
 
@@ -288,6 +294,34 @@ function App() {
         routeData={routeData}
         onClearRoute={clearRoute}
         onCalculateRoute={handleCalculateRoute}
+      />
+
+
+      {/* Toast Notifications */}
+      <Toaster
+        position="top-center"
+        toastOptions={{
+          duration: 3000,
+          style: {
+            background: '#fff',
+            color: '#333',
+            padding: '12px 20px',
+            borderRadius: '12px',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+          },
+          success: {
+            iconTheme: {
+              primary: '#10b981',
+              secondary: '#fff',
+            },
+          },
+          error: {
+            iconTheme: {
+              primary: '#ef4444',
+              secondary: '#fff',
+            },
+          },
+        }}
       />
 
       {/* Full Screen Map */}

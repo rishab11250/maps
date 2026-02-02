@@ -1,10 +1,28 @@
 import { Search, Loader2, X, Settings } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { cn } from '../lib/utils';
+import debounce from 'lodash.debounce';
 import { cn } from '../lib/utils';
 
 const SearchBar = ({ onSearch, isSearching }) => {
     const [query, setQuery] = useState('');
+
+    // Debounced search for auto-search on typing
+    const debouncedSearch = useMemo(
+        () => debounce((searchQuery) => {
+            if (searchQuery.trim().length > 2) {
+                onSearch(searchQuery);
+            }
+        }, 500),
+        [onSearch]
+    );
+
+    const handleInputChange = (e) => {
+        const value = e.target.value;
+        setQuery(value);
+        debouncedSearch(value);
+    };
 
     const handleSearch = async (e) => {
         e.preventDefault();
@@ -34,7 +52,7 @@ const SearchBar = ({ onSearch, isSearching }) => {
                 <input
                     type="text"
                     value={query}
-                    onChange={(e) => setQuery(e.target.value)}
+                    onChange={handleInputChange}
                     placeholder="Search here..."
                     className="flex-1 bg-transparent border-none outline-none text-gray-800 placeholder:text-gray-400 text-lg px-2"
                 />
