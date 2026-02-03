@@ -5,6 +5,7 @@ A modern, production-grade Google Maps clone built with **React**, **Leaflet**, 
 ![Maps Clone](https://img.shields.io/badge/React-19.0-61DAFB?logo=react)
 ![Vite](https://img.shields.io/badge/Vite-7.0-646CFF?logo=vite)
 ![Tailwind](https://img.shields.io/badge/Tailwind-4.0-38B2AC?logo=tailwindcss)
+![Node](https://img.shields.io/badge/Node-Express-339933?logo=nodedotjs)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
 ## ✨ Features
@@ -44,13 +45,14 @@ A modern, production-grade Google Maps clone built with **React**, **Leaflet**, 
 
 ### 💾 **Saved Places**
 
-- Save favorite locations to LocalStorage
+- Save favorite locations using local backend storage (JSON-based)
 - Quick access to starred places
 - One-click navigation to saved points
 
 ## 🚀 Tech Stack
 
 - **Framework**: React 19 with Vite
+- **Backend**: Node.js + Express (Local JSON storage)
 - **Styling**: Tailwind CSS v4 (PostCSS)
 - **Map Library**: Leaflet.js + react-leaflet
 - **Animations**: Framer Motion
@@ -71,8 +73,14 @@ cd maps-clone
 # Install dependencies
 npm install
 
-# Start development server
+# Start development server (Frontend + Backend)
+npm run dev:all
+
+# Start Frontend only
 npm run dev
+
+# Start Backend only
+npm run server
 
 # Build for production
 npm run build
@@ -127,7 +135,10 @@ maps-clone/
 ├── public/                        # Static assets
 ├── tailwind.config.js             # Tailwind configuration
 ├── postcss.config.js              # PostCSS configuration
-└── vite.config.js                 # Vite configuration
+├── vite.config.js                 # Vite configuration
+└── server/                        # Backend
+    ├── index.js                   # Server entry point
+    └── db.json                    # Local database
 ```
 
 ## 🤝 Contributing
