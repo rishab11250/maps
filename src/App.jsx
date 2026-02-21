@@ -10,6 +10,7 @@ import L from 'leaflet';
 import { StartIcon, EndIcon } from './utils/Icons';
 import UserLocationMarker from './components/UserLocationMarker';
 import toast, { Toaster } from 'react-hot-toast';
+import DistanceCalculator from './components/DistanceCalculator';
 
 function App() {
   // Map style: 'light', 'dark', or 'satellite'
@@ -29,6 +30,7 @@ function App() {
   const [routeData, setRouteData] = useState(null);
   const [activeTab, setActiveTab] = useState('saved'); // 'saved' or 'directions'
   const [voiceEnabled, setVoiceEnabled] = useState(false);
+  const [isMeasuring, setIsMeasuring] = useState(false);
 
   const mapRef = useRef(null);
 
